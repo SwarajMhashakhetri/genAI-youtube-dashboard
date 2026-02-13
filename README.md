@@ -1,131 +1,173 @@
-# Tambo Template
+# YouTube Trending Videos Dashboard
 
-This is a starter NextJS app with Tambo hooked up to get your AI app development started quickly.
+A modern YouTube analytics dashboard that uses AI to help you discover and analyze trending tech videos. Ask questions in natural language and get real-time data visualized through interactive components.
 
-## Get Started
+## Features
 
-1. Run `npm create-tambo@latest my-tambo-app` for a new project
+### 🤖 AI-Powered Chat Interface
+- **Natural Language Queries**: Ask questions like "Show me trending AI tutorials" or "What are the most popular React videos this week?"
+- **Generative UI**: AI dynamically renders components (VideoGrid, Graphs, DataCards) based on your query
+- **Real-Time Search**: Get instant results from YouTube's API with AI-powered filtering
 
-2. `npm install`
+### 📊 Data Visualization
+- **Video Grid**: Responsive 4-column layout displaying trending videos with thumbnails, views, and metadata
+- **Interactive Charts**: Bar, line, and pie charts for visualizing video performance metrics
+- **Data Cards**: Summary views of key insights and statistics
 
-3. `npx tambo init`
+### 🎯 YouTube Integration
+- **Trending Videos**: Fetch real-time trending videos from YouTube API
+- **Category Filtering**: Filter by categories like AI & ML, React, JavaScript, Web Dev, Tech Careers, and Open Source
+- **Video Details**: Get comprehensive video information including views, likes, duration, and quality scores
+- **Fallback to Mock Data**: If YouTube API quota is exceeded, automatically use curated mock data
 
-- or rename `example.env.local` to `.env.local` and add your tambo API key you can get for free [here](https://tambo.co/dashboard).
+### 🚀 Performance Features
+- **Dual-Layer Caching**: Client-side (localStorage) and server-side (in-memory) caching to minimize API calls
+- **Error Handling**: Graceful fallback mechanisms for API failures
+- **Search & Filter**: Client-side search functionality for quick video discovery
 
-4. Run `npm run dev` and go to `localhost:3000` to use the app!
+## Tech Stack
 
-## Customizing
+- **Next.js 15**: React framework for server-side rendering
+- **Tambo AI**: Generative UI agent for interactive components
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first CSS framework
+- **Recharts**: Data visualization library
+- **YouTube Data API v3**: For fetching video data
 
-### Change what components tambo can control
+## Getting Started
 
-You can see how components are registered with tambo in `src/lib/tambo.ts`:
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn package manager
+- YouTube API Key (get one from [Google Cloud Console](https://console.cloud.google.com/))
+- Tambo API Key (get one from [Tambo Dashboard](https://tambo.co/dashboard))
 
-```tsx
-export const components: TamboComponent[] = [
-  {
-    name: "Graph",
-    description:
-      "A component that renders various types of charts (bar, line, pie) using Recharts. Supports customizable data visualization with labels, datasets, and styling options.",
-    component: Graph,
-    propsSchema: graphSchema,
-  },
-  // Add more components here
-];
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd youtube-dashboard
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   - Rename `example.env.local` to `.env.local`
+   - Add your YouTube API key: `NEXT_PUBLIC_YOUTUBE_API_KEY=your-api-key`
+   - Add your Tambo API key: `NEXT_PUBLIC_TAMBO_API_KEY=your-api-key`
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Open the application**:
+   Navigate to `http://localhost:3000` in your browser
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx                # Main dashboard page with TamboProvider
+│   ├── layout.tsx              # Root HTML layout
+│   ├── api/
+│   │   └── youtube/trending/
+│   │       └── route.ts        # REST endpoint for fetching trending videos
+│   └── globals.css             # Global styles
+├── components/
+│   ├── tambo/                  # AI-renderable components and chat UI
+│   │   ├── graph.tsx          # Recharts visualization component
+│   │   ├── message.tsx        # Chat message display
+│   │   └── message-thread-full.tsx # Full thread container
+│   ├── VideoCard.tsx          # Single video card component
+│   ├── VideoGridSkeleton.tsx  # Responsive grid of video cards
+│   ├── VideoDescription.tsx   # Video metadata display
+│   ├── ChatSidebar.tsx        # Right sidebar chat interface
+│   ├── CategoryPills.tsx      # Category filter buttons
+│   └── ApiKeyCheck.tsx        # API key validation UI
+├── lib/
+│   ├── tambo.ts              # Component and tool registration
+│   ├── thread-hooks.ts       # Thread management hooks
+│   └── utils.ts              # Utility functions
+├── services/
+│   ├── youtube-data.ts       # YouTube API integration with caching
+│   ├── mock-trending-data.ts # Fallback mock data
+│   └── types.ts              # TypeScript definitions
+└── public/                   # Static assets
 ```
 
-You can install the graph component into any project with:
+## Usage Examples
 
-```bash
-npx tambo add graph
-```
+### Asking for Trending Videos
+- "Show me trending AI tutorials from the last week"
+- "What are the most popular React videos with over 100K views?"
+- "Find JavaScript tutorials about web development"
 
-The example Graph component demonstrates several key features:
+### Getting Analytics
+- "How many views do the top AI videos have?"
+- "Show me the distribution of views across categories"
+- "What's the average duration of trending videos?"
 
-- Different prop types (strings, arrays, enums, nested objects)
-- Multiple chart types (bar, line, pie)
-- Customizable styling (variants, sizes)
-- Optional configurations (title, legend, colors)
-- Data visualization capabilities
+### Video Performance
+- "Which videos have the highest quality scores?"
+- "Show me the most popular videos by watch time"
+- "What's the trend score for React tutorials?"
 
-Update the `components` array with any component(s) you want tambo to be able to use in a response!
+## Architecture
 
-You can find more information about the options [here](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
+The application follows a modern generative UI architecture:
 
-### Add tools for tambo to use
+1. **User Input**: You ask a question in the chat sidebar
+2. **AI Processing**: Tambo AI analyzes the query and determines the best tools to use
+3. **Data Fetching**: Relevant tools are called to fetch data from YouTube API
+4. **Component Rendering**: AI dynamically selects and renders the appropriate components
+5. **Result Display**: The AI streams the response with rendered components
 
-Tools are defined with `inputSchema` and `outputSchema`:
+For detailed architecture documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-```tsx
-export const tools: TamboTool[] = [
-  {
-    name: "globalPopulation",
-    description:
-      "A tool to get global population trends with optional year range filtering",
-    tool: getGlobalPopulationTrend,
-    inputSchema: z.object({
-      startYear: z.number().optional(),
-      endYear: z.number().optional(),
-    }),
-    outputSchema: z.array(
-      z.object({
-        year: z.number(),
-        population: z.number(),
-        growthRate: z.number(),
-      }),
-    ),
-  },
-];
-```
+## Customization
 
-Find more information about tools [here.](https://docs.tambo.co/concepts/tools)
+### Adding New Components
+Components are registered in `src/lib/tambo.ts`. Each component has:
+- `name`: Display name for the AI
+- `description`: What the component does (used for AI reasoning)
+- `component`: React component to render
+- `propsSchema`: Zod schema for validating props
 
-### The Magic of Tambo Requires the TamboProvider
+### Adding New Tools
+Tools are also registered in `src/lib/tambo.ts`. A tool has:
+- `name`: Display name
+- `description`: What the tool does
+- `tool`: Function that executes the tool
+- `inputSchema`: Expected input parameters
+- `outputSchema`: Output data structure
 
-Make sure in the TamboProvider wrapped around your app:
+### Customizing Categories
+Modify `CATEGORY_QUERIES` in `src/services/youtube-data.ts` to add or update video categories.
 
-```tsx
-...
-<TamboProvider
-  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-  components={components} // Array of components to control
-  tools={tools} // Array of tools it can use
->
-  {children}
-</TamboProvider>
-```
+## Contributing
 
-In this example we do this in the `Layout.tsx` file, but you can do it anywhere in your app that is a client component.
+Contributions are welcome! Here's how you can help:
 
-### Voice input
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes
+4. Run tests (`npm run test`)
+5. Commit your changes (`git commit -m 'Add my feature'`)
+6. Push to the branch (`git push origin feature/my-feature`)
+7. Open a pull request
 
-The template includes a `DictationButton` component using the `useTamboVoice` hook for speech-to-text input.
+## License
 
-### MCP (Model Context Protocol)
+This project is open source and available under the [MIT License](./LICENSE).
 
-The template includes MCP support for connecting to external tools and resources. You can use the MCP hooks from `@tambo-ai/react/mcp`:
+## Acknowledgments
 
-- `useTamboMcpPromptList` - List available prompts from MCP servers
-- `useTamboMcpPrompt` - Get a specific prompt
-- `useTamboMcpResourceList` - List available resources
-
-See `src/components/tambo/mcp-components.tsx` for example usage.
-
-### Change where component responses are shown
-
-The components used by tambo are shown alongside the message response from tambo within the chat thread, but you can have the result components show wherever you like by accessing the latest thread message's `renderedComponent` field:
-
-```tsx
-const { thread } = useTambo();
-const latestComponent =
-  thread?.messages[thread.messages.length - 1]?.renderedComponent;
-
-return (
-  <div>
-    {latestComponent && (
-      <div className="my-custom-wrapper">{latestComponent}</div>
-    )}
-  </div>
-);
-```
-
-For more detailed documentation, visit [Tambo's official docs](https://docs.tambo.co).
+- **Tambo AI**: For the generative UI framework
+- **YouTube Data API**: For providing video data
+- **Recharts**: For data visualization components
