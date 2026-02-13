@@ -1,32 +1,26 @@
 "use client";
 
-interface Category {
-  id: string;
+interface CategoryPillProps {
   label: string;
+  isActive?: boolean;
+  onClick?: () => void;
 }
 
-interface CategoryPillsProps {
-  categories: Category[];
-  activeId: string | null;
-  onChange: (id: string | null) => void;
-}
-
-export function CategoryPills({ categories, activeId, onChange }: CategoryPillsProps) {
+export default function CategoryPill({
+  label,
+  isActive = false,
+  onClick,
+}: CategoryPillProps) {
   return (
-    <div className="flex flex-wrap justify-center gap-3 px-6 py-2 max-w-4xl mx-auto">
-      {categories.map((category) => (
-        <button
-          key={category.id}
-          onClick={() => onChange(activeId === category.id ? null : category.id)}
-          className={`px-2 py-2 rounded-full text-xs border transition-colors ${
-            activeId === category.id
-              ? "bg-black text-white border-black"
-              : "border-gray-300 text-gray-700 hover:border-gray-900 hover:text-gray-900"
-          }`}
-        >
-          {category.label}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+        isActive
+          ? "border-blue-600 bg-blue-600 text-white"
+          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

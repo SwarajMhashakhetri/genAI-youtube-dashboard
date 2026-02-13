@@ -1,63 +1,43 @@
-"use client";
+import VideoDescription from "./VideoDescription";
 
-import { VideoThumbnail } from "@/components/VideoThumbnail";
-import { VideoDescription } from "@/components/VideoDescription";
-
-interface VideoCardProps {
-  videoId: string;
-  title: string;
-  channelName: string;
-  thumbnailUrl: string;
-  views: number;
-  publishedAt: string;
+export interface VideoCardProps {
   rank: number;
-  isPlaying?: boolean;
-  onTogglePlay?: () => void;
-  href?: string;
+  thumbnail: string;
+  title: string;
+  channel: string;
+  views: string;
+  timeAgo: string;
+  rating?: string;
 }
 
-export function VideoCard({
-  videoId,
-  title,
-  channelName,
-  thumbnailUrl,
-  views,
-  publishedAt,
+export default function VideoCard({
   rank,
-  isPlaying = false,
-  onTogglePlay,
-  href,
+  thumbnail,
+  title,
+  channel,
+  views,
+  timeAgo,
+  rating,
 }: VideoCardProps) {
-  const content = (
-    <>
-      <VideoThumbnail
-        videoId={videoId}
-        title={title}
-        thumbnailUrl={thumbnailUrl}
-        rank={rank}
-        isPlaying={isPlaying}
-        onTogglePlay={onTogglePlay ?? (() => {})}
-      />
+  return (
+    <div className="cursor-pointer">
+      <div className="relative overflow-hidden rounded-xl">
+        <img
+          src={thumbnail}
+          alt={title}
+          className="aspect-video w-full object-cover"
+        />
+        <span className="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-xs font-bold text-white">
+          #{rank}
+        </span>
+      </div>
       <VideoDescription
         title={title}
-        channelName={channelName}
+        channel={channel}
         views={views}
-        publishedAt={publishedAt}
+        timeAgo={timeAgo}
+        rating={rating}
       />
-    </>
-  );
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="group cursor-pointer">
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <div className="group cursor-pointer" onClick={onTogglePlay}>
-      {content}
     </div>
   );
 }

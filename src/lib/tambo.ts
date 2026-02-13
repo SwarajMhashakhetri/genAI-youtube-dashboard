@@ -9,7 +9,6 @@
  */
 
 import { Graph, graphSchema } from "@/components/tambo/graph";
-import { YouTubeGraph, youtubeGraphSchema } from "@/components/tambo/youtube-graph";
 import { DataCard, dataCardSchema } from "@/components/ui/card-data";
 import {
   getChannelMetrics,

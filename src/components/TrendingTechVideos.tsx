@@ -1,175 +1,119 @@
 "use client";
 
-import { CATEGORIES, CATEGORY_QUERIES, SORT_OPTIONS, DURATION_OPTIONS } from "@/lib/constants";
-import { getTrendingVideos, TrendingVideo } from "@/services/youtube-data";
-import { use, useState, useTransition, Suspense } from "react";
-import { CategoryPills } from "@/components/CategoryPills";
-import { VideoCard } from "@/components/VideoCard";
-import { VideoGridSkeleton } from "@/components/VideoGridSkeleton";
+import { useState, useEffect } from "react";
+import { Search, ChevronDown, ChevronRight } from "lucide-react";
+import CategoryPill from "./CategoryPills";
+import VideoGrid from "./VideoGridSkeleton";
+import { VideoCardProps } from "./VideoCard";
 
-// --- Data fetching ---
+const categories = [
+  "React",
+  "AI & ML",
+  "JavaScript",
+  "Tech Careers",
+  "Web Dev",
+  "Open Source",
+];
 
-function fetchVideos(category: string | null, sortBy: string): Promise<TrendingVideo[]> {
-    const query = category ? CATEGORY_QUERIES[category] || category : null;
+interface TrendingVideoResponse extends VideoCardProps {
+  category: string;
+}
 
-    const fetcher = async (): Promise<TrendingVideo[]> => {
-        let allVideos: TrendingVideo[];
+export default function TrendingTechVideos() {
+  const [videos, setVideos] = useState<TrendingVideoResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-        if (!query) {
-            const [webDevVideos, aiVideos, codingVideos] = await Promise.all([
-                getTrendingVideos({ category: "Web Dev", limit: 12 }),
-                getTrendingVideos({ category: "AI tutorials", limit: 12 }),
-                getTrendingVideos({ category: "Coding", limit: 12 }),
-                getTrendingVideos({ category: "ReactJS", limit: 12 }),
-            ]);
-            allVideos = [...webDevVideos, ...aiVideos, ...codingVideos];
-        } else {
-            allVideos = await getTrendingVideos({ category: query, limit: 30 });
+  useEffect(() => {
+    async function fetchVideos() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("/api/youtube/trending");
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to fetch videos");
         }
+        const data: TrendingVideoResponse[] = await res.json();
+        setVideos(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch videos");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-        const uniqueVideos = allVideos.filter(
-            (video, index, self) =>
-                index === self.findIndex((v) => v.videoId === video.videoId)
-        );
+    fetchVideos();
+  }, []);
 
-        const sortedVideos = [...uniqueVideos].sort((a, b) => {
-            switch (sortBy) {
-                case "newest":
-                    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-                case "rated":
-                    return b.views - a.views;
-                case "relevant":
-                default:
-                    return b.trendScore - a.trendScore;
+  const filteredVideos = videos.filter((video) => {
+    const matchesCategory = !activeCategory || video.category === activeCategory;
+    const matchesSearch = !searchQuery ||
+      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      video.channel.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      {/* Search and filters */}
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
+          <Search size={16} className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search for a video"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-48 text-sm outline-none placeholder:text-gray-400"
+          />
+        </div>
+        <button className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600">
+          Sort by <ChevronDown size={14} />
+        </button>
+        <button className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600">
+          Duration <ChevronDown size={14} />
+        </button>
+      </div>
+
+      {/* Categories */}
+      <div className="mb-2 flex flex-wrap items-center justify-center gap-2">
+        {categories.map((cat) => (
+          <CategoryPill
+            key={cat}
+            label={cat}
+            isActive={activeCategory === cat}
+            onClick={() =>
+              setActiveCategory(activeCategory === cat ? null : cat)
             }
-        });
+          />
+        ))}
+      </div>
 
-        return sortedVideos.slice(0, 30);
-    };
+      {/* See all link */}
+      <div className="mb-6 flex justify-center">
+        <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          See all <ChevronRight size={14} />
+        </button>
+      </div>
 
-    return fetcher();
-}
+      {/* Section title */}
+      <h2 className="mb-4 text-xl font-bold">Newest Videos</h2>
 
-// --- Video grid (consumes promise with use()) ---
-
-function VideoGrid({
-    videosPromise,
-    searchQuery,
-    isPending,
-    playingVideo,
-    onTogglePlay,
-}: {
-    videosPromise: Promise<TrendingVideo[]>;
-    searchQuery: string;
-    isPending: boolean;
-    playingVideo: string | null;
-    onTogglePlay: (videoId: string) => void;
-}) {
-    const videos = use(videosPromise);
-
-    const filteredVideos = searchQuery
-        ? videos.filter(
-            (v) =>
-                v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                v.channelName.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        : videos;
-
-    if (filteredVideos.length === 0) {
-        return <p className="text-gray-500 text-sm text-center py-12">No videos found</p>;
-    }
-
-    return (
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-8 transition-opacity ${isPending ? "opacity-50" : ""}`}>
-            {filteredVideos.map((video, index) => (
-                <VideoCard
-                    key={video.videoId}
-                    videoId={video.videoId}
-                    title={video.title}
-                    channelName={video.channelName}
-                    thumbnailUrl={video.thumbnailUrl}
-                    views={video.views}
-                    publishedAt={video.publishedAt}
-                    rank={index + 1}
-                    isPlaying={playingVideo === video.videoId}
-                    onTogglePlay={() => onTogglePlay(video.videoId)}
-                />
-            ))}
+      {/* Content */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400">
+          Loading trending videos...
         </div>
-    );
-}
-
-// --- Container ---
-
-export function TrendingTechVideos() {
-    const [activeCategory, setActiveCategory] = useState<string | null>(null);
-    const [sortBy, setSortBy] = useState("relevant");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-    const [duration, setDuration] = useState("any");
-
-    const [isPending, startTransition] = useTransition();
-    const [videosPromise, setVideosPromise] = useState(() => fetchVideos(null, "relevant"));
-
-    function handleCategoryChange(category: string | null) {
-        setActiveCategory(category);
-        startTransition(() => {
-            setVideosPromise(fetchVideos(category, sortBy));
-        });
-    }
-
-    function handleSortChange(sort: string) {
-        setSortBy(sort);
-        startTransition(() => {
-            setVideosPromise(fetchVideos(activeCategory, sort));
-        });
-    }
-
-    return (
-        <div className="bg-white min-h-full">
-
-            {/* Category Pills */}
-            <CategoryPills
-                categories={CATEGORIES}
-                activeId={activeCategory}
-                onChange={handleCategoryChange}
-            />
-
-            {/* See all link */}
-            <div className="text-center my-auto">
-                <button
-                    onClick={() => handleCategoryChange(null)}
-                    className="text-sm text-gray-900 underline underline-offset-4 inline-flex items-center gap-1 hover:text-gray-600"
-                >
-                    See all
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </div>
-
-            {/* Section Header */}
-            <div className="px-6 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                    {activeCategory
-                        ? CATEGORIES.find((c) => c.id === activeCategory)?.label || "Trending"
-                        : "Newest Videos"}
-                </h2>
-            </div>
-
-            {/* Video Grid */}
-            <div className="px-6 pb-8">
-
-                    <Suspense fallback={<VideoGridSkeleton />}>
-                        <VideoGrid
-                            videosPromise={videosPromise}
-                            searchQuery={searchQuery}
-                            isPending={isPending}
-                            playingVideo={playingVideo}
-                            onTogglePlay={(id) => setPlayingVideo(playingVideo === id ? null : id)}
-                        />
-                    </Suspense>
-               </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12 text-red-500">
+          {error}
         </div>
-    );
+      ) : (
+        <VideoGrid videos={filteredVideos} />
+      )}
+    </div>
+  );
 }

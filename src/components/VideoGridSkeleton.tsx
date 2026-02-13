@@ -1,18 +1,14 @@
-"use client";
+import VideoCard, { VideoCardProps } from "./VideoCard";
 
-interface VideoGridSkeletonProps {
-  count?: number;
+interface VideoGridProps {
+  videos: VideoCardProps[];
 }
 
-export function VideoGridSkeleton({ count = 8 }: VideoGridSkeletonProps) {
+export default function VideoGrid({ videos }: VideoGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-8">
-      {[...Array(count)].map((_, i) => (
-        <div key={i} className="animate-pulse">
-          <div className="bg-gray-200 rounded aspect-video mb-3" />
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-          <div className="h-3 bg-gray-200 rounded w-1/3" />
-        </div>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {videos.map((video) => (
+        <VideoCard key={video.rank} {...video} />
       ))}
     </div>
   );
