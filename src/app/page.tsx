@@ -1,33 +1,19 @@
 "use client";
 
 import ChatSidebar from "@/components/ChatSidebar";
+import MyDashboard from "@/components/MyDashboard";
+import Tab from "@/components/Tab";
 import TrendingTechVideos from "@/components/TrendingTechVideos";
 import { useMcpServers } from "@/components/tambo/mcp-config-modal";
 import { components, tools } from "@/lib/tambo";
-import { TamboProvider, useTambo } from "@tambo-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
+import { useState } from "react";
 
-function ContentArea() {
-  const { thread } = useTambo();
-
-  // Get the latest assistant message with a rendered component
-  const latestComponent = thread?.messages
-    .filter(msg => msg.role === "assistant" && msg.renderedComponent)
-    .map(msg => msg.renderedComponent)
-    .pop();
-
-  return (
-    <div className="flex-1 flex flex-col min-w-0 overflow-scroll-y" data-canvas-space="true">
-      <main className="flex-1 overflow-auto">
-        <div className="bg-white m-6 rounded-lg shadow-sm border border-gray-200">
-          {latestComponent || <TrendingTechVideos />}
-        </div>
-      </main>
-    </div>
-  );
-}
+type TabId = "my-dashboard" | "discover";
 
 export default function Home() {
   const mcpServers = useMcpServers();
+  const [activeTab, setActiveTab] = useState<TabId>("discover");
 
   return (
     <TamboProvider
@@ -38,7 +24,41 @@ export default function Home() {
       mcpServers={mcpServers}
     >
       <div className="h-svh bg-gray-50 flex">
-        <ContentArea />
+        <div className="flex-1 flex flex-col min-w-0 overflow-scroll-y">
+          <div className="bg-white border-b border-gray-200 px-6">
+            <nav className="flex gap-1" aria-label="Tabs">
+              <Tab
+                label="Discover"
+                subtitle="Trending content"
+                icon={
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                }
+                isActive={activeTab === "discover"}
+                onClick={() => setActiveTab("discover")}
+              />
+              <Tab
+                label="Swaraj's YouTube Dashboard"
+                subtitle="Personal metrics"
+                icon={
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                }
+                isActive={activeTab === "my-dashboard"}
+                onClick={() => setActiveTab("my-dashboard")}
+              />
+            </nav>
+          </div>
+
+          <main className="flex-1 overflow-auto">
+            <div className="bg-white m-6 rounded-lg shadow-sm border border-gray-200">
+              {activeTab === "my-dashboard" ? <MyDashboard /> : <TrendingTechVideos />}
+            </div>
+          </main>
+        </div>
+
         <ChatSidebar />
       </div>
     </TamboProvider>

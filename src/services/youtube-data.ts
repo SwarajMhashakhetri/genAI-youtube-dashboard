@@ -459,7 +459,7 @@ export async function getVideoPerformance(params?: {
         thumbnailUrl:
           item.snippet.thumbnails?.high?.url ||
           item.snippet.thumbnails?.default?.url ||
-          'https://placehold.co/480x270/16213e/ffffff?text=No+Thumbnail',
+          "",
         category: categorizeVideo(item.snippet.title, item.snippet.tags || []),
       };
     });
@@ -508,7 +508,7 @@ export async function getTrendingVideos(params?: {
     const searchQuery = CATEGORY_QUERIES[category] || category;
     // Request more results to account for shorts being filtered out, and exclude shorts from search
     const maxResults = Math.min(limit * 2, 50);
-    const url = `${YOUTUBE_API_BASE}/search?part=snippet&q=${encodeURIComponent(searchQuery + " -shorts")}&type=video&order=viewCount&maxResults=${maxResults}&videoDuration=medium&relevanceLanguage=en&regionCode=US&key=${API_KEY}&publishedAfter=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}`;
+    const url = `${YOUTUBE_API_BASE}/list?part=snippet&q=${encodeURIComponent(searchQuery + " -shorts")}&type=video&order=viewCount&maxResults=${maxResults}&videoDuration=medium&relevanceLanguage=en&regionCode=US&key=${API_KEY}&publishedAfter=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}`;
 
     const response = await fetchWithRetry(url);
     const data = await response.json();
@@ -599,10 +599,10 @@ export async function getTrendingVideos(params?: {
           category,
           trendScore: calculateTrendScore(views, publishedAt, likes),
           qualityScore: calculateQualityScore(views, likes, publishedAt, durationSeconds),
-        thumbnailUrl:
-          item.snippet.thumbnails?.high?.url ||
-          item.snippet.thumbnails?.default?.url ||
-          'https://placehold.co/480x270/16213e/ffffff?text=No+Thumbnail',
+          thumbnailUrl:
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.default?.url ||
+            "",
           tags: item.snippet.tags || [],
           duration,
         };
@@ -833,10 +833,10 @@ export async function searchVideos(params?: {
           category: categorizeVideo(item.snippet.title, item.snippet.tags || []),
           trendScore: calculateTrendScore(views, publishedAt, likes),
           qualityScore: calculateQualityScore(views, likes, publishedAt, durationSeconds),
-        thumbnailUrl:
-          item.snippet.thumbnails?.high?.url ||
-          item.snippet.thumbnails?.default?.url ||
-          'https://placehold.co/480x270/16213e/ffffff?text=No+Thumbnail',
+          thumbnailUrl:
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.default?.url ||
+            "",
           tags: item.snippet.tags || [],
           duration,
         };
